@@ -533,6 +533,126 @@ p {
   margin: 0;
 }
 
+.quiz-band {
+  background: var(--surface-2);
+}
+
+.quiz-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 22px;
+  align-items: start;
+}
+
+.quiz-questions {
+  display: grid;
+  gap: 14px;
+}
+
+.quiz-card,
+.quiz-summary {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 16px 46px rgba(24, 33, 43, 0.08);
+}
+
+.quiz-card {
+  padding: 20px;
+}
+
+.quiz-question-head {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.quiz-question-head span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 8px;
+  background: #d8efed;
+  color: var(--teal-dark);
+  font-weight: 900;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.quiz-options button,
+.quiz-summary button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 10px 12px;
+}
+
+.quiz-options button {
+  text-align: left;
+}
+
+.quiz-options button:hover,
+.quiz-summary button:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+}
+
+.quiz-options button.selected {
+  border-color: var(--blue);
+  background: #e9efff;
+}
+
+.quiz-options button.correct {
+  border-color: var(--teal);
+  background: #d8efed;
+  color: var(--teal-dark);
+}
+
+.quiz-options button.wrong {
+  border-color: var(--coral);
+  background: #f4d6cc;
+  color: #8a2f16;
+}
+
+.quiz-summary {
+  position: sticky;
+  top: 94px;
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+}
+
+.quiz-summary strong {
+  color: var(--ink);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.quiz-summary p {
+  margin-bottom: 4px;
+}
+
+.quiz-summary button:first-of-type {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: white;
+}
+
+.quiz-summary button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 footer {
   padding: 28px clamp(18px, 4vw, 64px);
   border-top: 1px solid var(--line);
@@ -559,8 +679,13 @@ footer {
   .intro-section,
   .split-section,
   .split-section.reverse,
-  .matrix-layout {
+  .matrix-layout,
+  .quiz-layout {
     grid-template-columns: 1fr;
+  }
+
+  .quiz-summary {
+    position: static;
   }
 
   .intro-section {

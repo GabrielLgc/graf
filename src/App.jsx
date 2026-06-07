@@ -66,6 +66,34 @@ const algorithms = [
   "Problema comis-voiajorului: cauta un traseu scurt care viziteaza fiecare oras o singura data si revine la start."
 ];
 
+const quizQuestions = [
+  {
+    question: "Ce reprezinta o muchie intr-un graf neorientat?",
+    options: ["O legatura fara sens intre doua varfuri", "Un varf izolat", "O legatura care merge doar intr-un sens"],
+    answer: 0
+  },
+  {
+    question: "Ce inseamna arcul A -> B intr-un graf orientat?",
+    options: ["Se poate merge doar de la B la A", "Exista o legatura orientata de la A la B", "A si B sunt acelasi varf"],
+    answer: 1
+  },
+  {
+    question: "Cum este matricea de adiacenta pentru un graf neorientat?",
+    options: ["Intotdeauna are doar zerouri", "Este simetrica fata de diagonala principala", "Are valori negative"],
+    answer: 1
+  },
+  {
+    question: "Ce masoara gradul unui varf intr-un graf neorientat?",
+    options: ["Numarul muchiilor incidente cu acel varf", "Pozitia varfului in desen", "Numarul total de grafuri posibile"],
+    answer: 0
+  },
+  {
+    question: "Ce algoritm este folosit des pentru parcurgerea in latime a unui graf?",
+    options: ["Dijkstra", "BFS", "Problema comis-voiajorului"],
+    answer: 1
+  }
+];
+
 function getNode(nodes, id) {
   return nodes.find((node) => node.id === id);
 }
@@ -232,6 +260,98 @@ function DegreePanel({ mode, nodes, edges }) {
   );
 }
 
+function KnowledgeQuiz() {
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const answeredCount = Object.keys(answers).length;
+  const score = quizQuestions.reduce((total, question, index) => {
+    return total + (answers[index] === question.answer ? 1 : 0);
+  }, 0);
+
+  function chooseAnswer(questionIndex, optionIndex) {
+    setAnswers((current) => ({
+      ...current,
+      [questionIndex]: optionIndex
+    }));
+    setSubmitted(false);
+  }
+
+  function resetQuiz() {
+    setAnswers({});
+    setSubmitted(false);
+  }
+
+  return (
+    <section className="content-band quiz-band" id="test">
+      <div className="section-heading">
+        <p className="eyebrow">Verifica-te</p>
+        <h2>Test de cunostinte</h2>
+        <p>Raspunde la intrebarile de baza despre grafuri, apoi verifica scorul si vezi unde ai gresit.</p>
+      </div>
+
+      <div className="quiz-layout">
+        <div className="quiz-questions">
+          {quizQuestions.map((question, questionIndex) => {
+            const selectedAnswer = answers[questionIndex];
+            return (
+              <article className="quiz-card" key={question.question}>
+                <div className="quiz-question-head">
+                  <span>{questionIndex + 1}</span>
+                  <h3>{question.question}</h3>
+                </div>
+                <div className="quiz-options">
+                  {question.options.map((option, optionIndex) => {
+                    const isSelected = selectedAnswer === optionIndex;
+                    const isCorrect = question.answer === optionIndex;
+                    const showCorrect = submitted && isCorrect;
+                    const showWrong = submitted && isSelected && !isCorrect;
+                    return (
+                      <button
+                        className={[
+                          isSelected ? "selected" : "",
+                          showCorrect ? "correct" : "",
+                          showWrong ? "wrong" : ""
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        key={option}
+                        type="button"
+                        onClick={() => chooseAnswer(questionIndex, optionIndex)}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <aside className="quiz-summary">
+          <h3>Rezultat</h3>
+          <strong>
+            {submitted ? `${score}/${quizQuestions.length}` : `${answeredCount}/${quizQuestions.length}`}
+          </strong>
+          <p>
+            {submitted
+              ? score === quizQuestions.length
+                ? "Perfect. Ai inteles conceptele principale."
+                : "Revizuieste intrebarile marcate si incearca din nou."
+              : "Completeaza raspunsurile, apoi apasa pe verificare."}
+          </p>
+          <button type="button" onClick={() => setSubmitted(true)} disabled={answeredCount !== quizQuestions.length}>
+            Verifica raspunsurile
+          </button>
+          <button type="button" onClick={resetQuiz}>
+            Reia testul
+          </button>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [mode, setMode] = useState("undirected");
   const [graphs, setGraphs] = useState(initialGraphs);
@@ -351,6 +471,7 @@ export default function App() {
           <a href="#comparatie">Comparatie</a>
           <a href="#matrice">Matrice</a>
           <a href="#aplicatii">Aplicatii</a>
+          <a href="#test">Test</a>
         </nav>
       </header>
 
@@ -507,6 +628,8 @@ export default function App() {
             </p>
           </div>
         </section>
+
+        <KnowledgeQuiz />
       </main>
 
       <footer>
