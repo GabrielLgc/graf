@@ -52,7 +52,7 @@ const algorithms = [
   "BFS: gaseste rapid nivelele si distantele minime in grafuri fara costuri.",
   "DFS: exploreaza in adancime si ajuta la componente conexe sau cicluri.",
   "Dijkstra: calculeaza drumuri minime cand muchiile au costuri pozitive.",
-  "Sortare topologica: ordoneaza activitati intr-un graf orientat aciclic."
+  "Problema comis-voiajorului: cauta un traseu scurt care viziteaza fiecare oras o singura data si revine la start."
 ];
 
 function getNode(id) {
