@@ -236,9 +236,15 @@ export default function App() {
   const [mode, setMode] = useState("undirected");
   const [graphs, setGraphs] = useState(initialGraphs);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [edgeDirection, setEdgeDirection] = useState("forward");
   const isDirected = mode === "directed";
   const currentGraph = graphs[mode];
-  const selectedEdge = selectedIds.length === 2 ? selectedIds : null;
+  const selectedEdge =
+    selectedIds.length === 2
+      ? edgeDirection === "forward"
+        ? selectedIds
+        : [selectedIds[1], selectedIds[0]]
+      : null;
   const selectedEdgeExists = selectedEdge
     ? currentGraph.edges.some((edge) => isSameEdge(edge, selectedEdge, mode))
     : false;
@@ -253,15 +259,17 @@ export default function App() {
   function handleModeChange(nextMode) {
     setMode(nextMode);
     setSelectedIds([]);
+    setEdgeDirection("forward");
   }
 
   function handleSelectNode(id) {
     setSelectedIds((current) => {
       if (current.includes(id)) {
-        return current;
+        return current.filter((selectedId) => selectedId !== id);
       }
       return [...current, id].slice(-2);
     });
+    setEdgeDirection("forward");
   }
 
   function handleMoveNode(id, position) {
@@ -301,6 +309,7 @@ export default function App() {
       edges: graph.edges.filter(([from, to]) => !selectedIds.includes(from) && !selectedIds.includes(to))
     }));
     setSelectedIds([]);
+    setEdgeDirection("forward");
   }
 
   function toggleEdge(action) {
@@ -327,6 +336,7 @@ export default function App() {
       [mode]: initialGraphs[mode]
     }));
     setSelectedIds([]);
+    setEdgeDirection("forward");
   }
 
   return (
@@ -373,17 +383,39 @@ export default function App() {
             />
             <div className="graph-caption">
               <strong>{isDirected ? "Arcele au directie" : "Muchiile nu au directie"}</strong>
-              <span>Selecteaza doua noduri pentru o legatura, trage nodurile pentru a schimba forma grafului.</span>
+              <span>
+                Selecteaza doua noduri pentru o legatura, trage nodurile pentru a schimba forma grafului. Apasa din nou
+                pe un nod selectat ca sa il deselectezi.
+              </span>
             </div>
+            {isDirected && selectedIds.length === 2 && (
+              <div className="direction-switch" role="group" aria-label="Alege sensul arcului">
+                <span>Sens arc</span>
+                <button
+                  className={edgeDirection === "forward" ? "selected" : ""}
+                  type="button"
+                  onClick={() => setEdgeDirection("forward")}
+                >
+                  {selectedIds[0]} {"->"} {selectedIds[1]}
+                </button>
+                <button
+                  className={edgeDirection === "reverse" ? "selected" : ""}
+                  type="button"
+                  onClick={() => setEdgeDirection("reverse")}
+                >
+                  {selectedIds[1]} {"->"} {selectedIds[0]}
+                </button>
+              </div>
+            )}
             <div className="graph-actions" aria-label="Instrumente pentru editarea grafului">
               <button type="button" onClick={addNode}>
                 Adauga nod
               </button>
               <button type="button" onClick={() => toggleEdge("add")} disabled={!selectedEdge || selectedEdgeExists}>
-                Leaga selectia
+                {isDirected && selectedEdge ? `Adauga ${selectedEdge[0]} -> ${selectedEdge[1]}` : "Leaga selectia"}
               </button>
               <button type="button" onClick={() => toggleEdge("remove")} disabled={!selectedEdgeExists}>
-                Sterge legatura
+                {isDirected && selectedEdge ? `Sterge ${selectedEdge[0]} -> ${selectedEdge[1]}` : "Sterge legatura"}
               </button>
               <button type="button" onClick={deleteSelection} disabled={selectedIds.length === 0}>
                 Sterge nod

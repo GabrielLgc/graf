@@ -264,7 +264,8 @@ p {
   padding-top: 2px;
 }
 
-.graph-actions button {
+.graph-actions button,
+.direction-switch button {
   min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -275,9 +276,31 @@ p {
   padding: 0 12px;
 }
 
-.graph-actions button:hover:not(:disabled) {
+.graph-actions button:hover:not(:disabled),
+.direction-switch button:hover {
   border-color: var(--teal);
   color: var(--teal-dark);
+}
+
+.direction-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.direction-switch span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.direction-switch button.selected {
+  border-color: var(--coral);
+  background: var(--coral);
+  color: white;
 }
 
 .graph-actions button:disabled {
@@ -578,6 +601,11 @@ footer {
 
   .graph-panel {
     padding: 12px;
+  }
+
+  .graph-actions button,
+  .direction-switch button {
+    flex: 1 1 140px;
   }
 
   .comparison-table {
