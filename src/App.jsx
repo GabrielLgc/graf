@@ -66,6 +66,54 @@ const algorithms = [
   "Problema comis-voiajorului: cauta un traseu scurt care viziteaza fiecare oras o singura data si revine la start."
 ];
 
+const codeExamples = [
+  {
+    title: "Parcurgere in latime - BFS",
+    description: "BFS foloseste o coada si viziteaza mai intai vecinii apropiati ai varfului de start.",
+    code: `#include <stdio.h>
+
+int a[101][101], viz[101], q[101];
+int n;
+
+void bfs(int start) {
+    int st = 0, dr = 0;
+    q[dr++] = start;
+    viz[start] = 1;
+
+    while (st < dr) {
+        int x = q[st++];
+        printf("%d ", x);
+
+        for (int y = 1; y <= n; y++) {
+            if (a[x][y] == 1 && viz[y] == 0) {
+                viz[y] = 1;
+                q[dr++] = y;
+            }
+        }
+    }
+}`
+  },
+  {
+    title: "Parcurgere in adancime - DFS",
+    description: "DFS foloseste recursivitatea si merge cat mai adanc pe fiecare ramura inainte sa revina.",
+    code: `#include <stdio.h>
+
+int a[101][101], viz[101];
+int n;
+
+void dfs(int x) {
+    viz[x] = 1;
+    printf("%d ", x);
+
+    for (int y = 1; y <= n; y++) {
+        if (a[x][y] == 1 && viz[y] == 0) {
+            dfs(y);
+        }
+    }
+}`
+  }
+];
+
 const quizQuestions = [
   {
     question: "Ce reprezinta o muchie intr-un graf neorientat?",
@@ -470,6 +518,7 @@ export default function App() {
           <a href="#definitii">Definitii</a>
           <a href="#comparatie">Comparatie</a>
           <a href="#matrice">Matrice</a>
+          <a href="#cod-c">Cod C</a>
           <a href="#aplicatii">Aplicatii</a>
           <a href="#test">Test</a>
         </nav>
@@ -607,6 +656,29 @@ export default function App() {
               <h3>Gradele varfurilor</h3>
               <DegreePanel mode={mode} nodes={currentGraph.nodes} edges={currentGraph.edges} />
             </div>
+          </div>
+        </section>
+
+        <section className="content-band code-band" id="cod-c">
+          <div className="section-heading">
+            <p className="eyebrow">Implementare</p>
+            <h2>Exemple de cod in C</h2>
+            <p>
+              Exemplele folosesc matricea de adiacenta `a`, unde `a[x][y] = 1` inseamna ca exista legatura de la x la y.
+            </p>
+          </div>
+          <div className="code-grid">
+            {codeExamples.map((example) => (
+              <article className="code-card" key={example.title}>
+                <div className="code-card-head">
+                  <h3>{example.title}</h3>
+                  <p>{example.description}</p>
+                </div>
+                <pre>
+                  <code>{example.code}</code>
+                </pre>
+              </article>
+            ))}
           </div>
         </section>
 
