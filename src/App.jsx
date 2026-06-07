@@ -235,7 +235,7 @@ export default function App() {
             <h2>Orientat vs. neorientat</h2>
             <p>
               In grafurile neorientate conteaza doar existenta legaturii. In grafurile orientate conteaza si ordinea
-              varfurilor, deci A -> B este diferit de B -> A.
+              varfurilor, deci A {"->"} B este diferit de B {"->"} A.
             </p>
           </div>
           <div className="comparison-table" role="table" aria-label="Comparatie intre graf orientat si neorientat">
