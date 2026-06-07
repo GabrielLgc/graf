@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
-const nodes = [
+const initialNodes = [
   { id: "A", x: 86, y: 72 },
   { id: "B", x: 238, y: 54 },
   { id: "C", x: 292, y: 182 },
@@ -25,6 +25,17 @@ const directedEdges = [
   ["E", "A"],
   ["D", "E"]
 ];
+
+const initialGraphs = {
+  undirected: {
+    nodes: initialNodes,
+    edges: undirectedEdges
+  },
+  directed: {
+    nodes: initialNodes,
+    edges: directedEdges
+  }
+};
 
 const lessons = [
   {
@@ -55,12 +66,20 @@ const algorithms = [
   "Problema comis-voiajorului: cauta un traseu scurt care viziteaza fiecare oras o singura data si revine la start."
 ];
 
-function getNode(id) {
+function getNode(nodes, id) {
   return nodes.find((node) => node.id === id);
 }
 
-function Matrix({ mode }) {
-  const edges = mode === "directed" ? directedEdges : undirectedEdges;
+function isSameEdge(edge, nextEdge, mode) {
+  const [from, to] = edge;
+  const [nextFrom, nextTo] = nextEdge;
+  if (mode === "directed") {
+    return from === nextFrom && to === nextTo;
+  }
+  return (from === nextFrom && to === nextTo) || (from === nextTo && to === nextFrom);
+}
+
+function Matrix({ mode, nodes, edges }) {
   const matrix = nodes.map((row) =>
     nodes.map((col) => {
       const forward = edges.some(([from, to]) => from === row.id && to === col.id);
@@ -70,7 +89,11 @@ function Matrix({ mode }) {
   );
 
   return (
-    <div className="matrix" aria-label="Matrice de adiacenta">
+    <div
+      className="matrix"
+      aria-label="Matrice de adiacenta"
+      style={{ gridTemplateColumns: `48px repeat(${nodes.length}, minmax(44px, 1fr))` }}
+    >
       <span className="matrix-corner" />
       {nodes.map((node) => (
         <strong key={`top-${node.id}`}>{node.id}</strong>
@@ -89,11 +112,47 @@ function Matrix({ mode }) {
   );
 }
 
-function GraphDiagram({ mode }) {
-  const edges = mode === "directed" ? directedEdges : undirectedEdges;
+function GraphEditor({ mode, nodes, edges, selectedIds, onSelectNode, onMoveNode }) {
+  const [draggingId, setDraggingId] = useState(null);
+  const svgRef = useRef(null);
+
+  function getPointerPosition(event) {
+    const rect = svgRef.current.getBoundingClientRect();
+    return {
+      x: Math.min(322, Math.max(28, ((event.clientX - rect.left) / rect.width) * 350)),
+      y: Math.min(252, Math.max(28, ((event.clientY - rect.top) / rect.height) * 280))
+    };
+  }
+
+  function handlePointerDown(event, id) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDraggingId(id);
+    onSelectNode(id);
+  }
+
+  function handlePointerMove(event) {
+    if (!draggingId) return;
+    onMoveNode(draggingId, getPointerPosition(event));
+  }
+
+  function handlePointerUp(event) {
+    if (draggingId && event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDraggingId(null);
+  }
 
   return (
-    <svg viewBox="0 0 350 280" role="img" aria-label={`Exemplu de graf ${mode === "directed" ? "orientat" : "neorientat"}`}>
+    <svg
+      ref={svgRef}
+      className="graph-editor"
+      viewBox="0 0 350 280"
+      role="img"
+      aria-label={`Editor de graf ${mode === "directed" ? "orientat" : "neorientat"}`}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={() => setDraggingId(null)}
+    >
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="#d54f2a" />
@@ -102,8 +161,9 @@ function GraphDiagram({ mode }) {
       <rect x="0" y="0" width="350" height="280" rx="18" fill="#f7fbfa" />
       <g>
         {edges.map(([from, to]) => {
-          const start = getNode(from);
-          const end = getNode(to);
+          const start = getNode(nodes, from);
+          const end = getNode(nodes, to);
+          if (!start || !end) return null;
           return (
             <line
               key={`${from}-${to}`}
@@ -119,8 +179,18 @@ function GraphDiagram({ mode }) {
       </g>
       <g>
         {nodes.map((node) => (
-          <g key={node.id}>
-            <circle cx={node.x} cy={node.y} r="24" className="node-circle" />
+          <g
+            key={node.id}
+            className="node-control"
+            onPointerDown={(event) => handlePointerDown(event, node.id)}
+            onPointerUp={handlePointerUp}
+          >
+            <circle
+              cx={node.x}
+              cy={node.y}
+              r="24"
+              className={selectedIds.includes(node.id) ? "node-circle selected" : "node-circle"}
+            />
             <text x={node.x} y={node.y + 7} textAnchor="middle" className="node-text">
               {node.id}
             </text>
@@ -131,9 +201,8 @@ function GraphDiagram({ mode }) {
   );
 }
 
-function DegreePanel({ mode }) {
+function DegreePanel({ mode, nodes, edges }) {
   const data = useMemo(() => {
-    const edges = mode === "directed" ? directedEdges : undirectedEdges;
     return nodes.map((node) => {
       if (mode === "undirected") {
         const degree = edges.filter(([a, b]) => a === node.id || b === node.id).length;
@@ -143,7 +212,7 @@ function DegreePanel({ mode }) {
       const incoming = edges.filter(([, to]) => to === node.id).length;
       return { id: node.id, incoming, out };
     });
-  }, [mode]);
+  }, [mode, nodes, edges]);
 
   return (
     <div className="degree-list">
@@ -165,7 +234,100 @@ function DegreePanel({ mode }) {
 
 export default function App() {
   const [mode, setMode] = useState("undirected");
+  const [graphs, setGraphs] = useState(initialGraphs);
+  const [selectedIds, setSelectedIds] = useState([]);
   const isDirected = mode === "directed";
+  const currentGraph = graphs[mode];
+  const selectedEdge = selectedIds.length === 2 ? selectedIds : null;
+  const selectedEdgeExists = selectedEdge
+    ? currentGraph.edges.some((edge) => isSameEdge(edge, selectedEdge, mode))
+    : false;
+
+  function updateCurrentGraph(updater) {
+    setGraphs((current) => ({
+      ...current,
+      [mode]: updater(current[mode])
+    }));
+  }
+
+  function handleModeChange(nextMode) {
+    setMode(nextMode);
+    setSelectedIds([]);
+  }
+
+  function handleSelectNode(id) {
+    setSelectedIds((current) => {
+      if (current.includes(id)) {
+        return current;
+      }
+      return [...current, id].slice(-2);
+    });
+  }
+
+  function handleMoveNode(id, position) {
+    updateCurrentGraph((graph) => ({
+      ...graph,
+      nodes: graph.nodes.map((node) => (node.id === id ? { ...node, ...position } : node))
+    }));
+  }
+
+  function getNextNodeId(nodes) {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    return alphabet.find((letter) => !nodes.some((node) => node.id === letter)) || `N${nodes.length + 1}`;
+  }
+
+  function addNode() {
+    updateCurrentGraph((graph) => {
+      const id = getNextNodeId(graph.nodes);
+      const index = graph.nodes.length;
+      return {
+        ...graph,
+        nodes: [
+          ...graph.nodes,
+          {
+            id,
+            x: 70 + (index % 4) * 72,
+            y: 70 + Math.floor(index / 4) * 74
+          }
+        ]
+      };
+    });
+  }
+
+  function deleteSelection() {
+    if (selectedIds.length === 0) return;
+    updateCurrentGraph((graph) => ({
+      nodes: graph.nodes.filter((node) => !selectedIds.includes(node.id)),
+      edges: graph.edges.filter(([from, to]) => !selectedIds.includes(from) && !selectedIds.includes(to))
+    }));
+    setSelectedIds([]);
+  }
+
+  function toggleEdge(action) {
+    if (!selectedEdge) return;
+    updateCurrentGraph((graph) => {
+      if (action === "remove") {
+        return {
+          ...graph,
+          edges: graph.edges.filter((edge) => !isSameEdge(edge, selectedEdge, mode))
+        };
+      }
+      const exists = graph.edges.some((edge) => isSameEdge(edge, selectedEdge, mode));
+      if (exists) return graph;
+      return {
+        ...graph,
+        edges: [...graph.edges, selectedEdge]
+      };
+    });
+  }
+
+  function resetGraph() {
+    setGraphs((current) => ({
+      ...current,
+      [mode]: initialGraphs[mode]
+    }));
+    setSelectedIds([]);
+  }
 
   return (
     <div className="app">
@@ -185,31 +347,54 @@ export default function App() {
       <main id="top">
         <section className="intro-section">
           <div className="intro-copy">
-            <p className="eyebrow">Informatica • clasa a XI-a</p>
+            <p className="eyebrow">Informatica - clasa a XI-a</p>
             <h1>Grafuri orientate si neorientate, explicate vizual</h1>
             <p>
               Invata rapid diferenta dintre muchii si arce, cum se citesc gradele varfurilor si cum arata matricea de
               adiacenta pentru fiecare tip de graf.
             </p>
             <div className="mode-switch" role="group" aria-label="Alege tipul grafului">
-              <button className={!isDirected ? "selected" : ""} onClick={() => setMode("undirected")} type="button">
+              <button className={!isDirected ? "selected" : ""} onClick={() => handleModeChange("undirected")} type="button">
                 Neorientat
               </button>
-              <button className={isDirected ? "selected" : ""} onClick={() => setMode("directed")} type="button">
+              <button className={isDirected ? "selected" : ""} onClick={() => handleModeChange("directed")} type="button">
                 Orientat
               </button>
             </div>
           </div>
           <div className="graph-panel" aria-live="polite">
-            <GraphDiagram mode={mode} />
+            <GraphEditor
+              mode={mode}
+              nodes={currentGraph.nodes}
+              edges={currentGraph.edges}
+              selectedIds={selectedIds}
+              onSelectNode={handleSelectNode}
+              onMoveNode={handleMoveNode}
+            />
             <div className="graph-caption">
               <strong>{isDirected ? "Arcele au directie" : "Muchiile nu au directie"}</strong>
-              <span>
-                {isDirected
-                  ? "Sagetile arata sensul permis al parcurgerii."
-                  : "Fiecare legatura poate fi folosita in ambele sensuri."}
-              </span>
+              <span>Selecteaza doua noduri pentru o legatura, trage nodurile pentru a schimba forma grafului.</span>
             </div>
+            <div className="graph-actions" aria-label="Instrumente pentru editarea grafului">
+              <button type="button" onClick={addNode}>
+                Adauga nod
+              </button>
+              <button type="button" onClick={() => toggleEdge("add")} disabled={!selectedEdge || selectedEdgeExists}>
+                Leaga selectia
+              </button>
+              <button type="button" onClick={() => toggleEdge("remove")} disabled={!selectedEdgeExists}>
+                Sterge legatura
+              </button>
+              <button type="button" onClick={deleteSelection} disabled={selectedIds.length === 0}>
+                Sterge nod
+              </button>
+              <button type="button" onClick={resetGraph}>
+                Reset
+              </button>
+            </div>
+            <p className="selection-status">
+              {selectedIds.length > 0 ? `Selectat: ${selectedIds.join(", ")}` : "Selecteaza un nod din graf."}
+            </p>
           </div>
         </section>
 
@@ -264,10 +449,10 @@ export default function App() {
             </p>
           </div>
           <div className="matrix-layout">
-            <Matrix mode={mode} />
+            <Matrix mode={mode} nodes={currentGraph.nodes} edges={currentGraph.edges} />
             <div className="info-panel">
               <h3>Gradele varfurilor</h3>
-              <DegreePanel mode={mode} />
+              <DegreePanel mode={mode} nodes={currentGraph.nodes} edges={currentGraph.edges} />
             </div>
           </div>
         </section>
