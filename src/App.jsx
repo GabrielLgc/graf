@@ -70,24 +70,28 @@ const codeExamples = [
   {
     title: "Parcurgere in latime - BFS",
     description: "BFS foloseste o coada si viziteaza mai intai vecinii apropiati ai varfului de start.",
-    code: `#include <stdio.h>
+    code: `#include <iostream>
+#include <queue>
+#include <vector>
+using namespace std;
 
-int a[101][101], viz[101], q[101];
+int a[101][101], viz[101];
 int n;
 
 void bfs(int start) {
-    int st = 0, dr = 0;
-    q[dr++] = start;
+    queue<int> q;
+    q.push(start);
     viz[start] = 1;
 
-    while (st < dr) {
-        int x = q[st++];
-        printf("%d ", x);
+    while (!q.empty()) {
+        int x = q.front();
+        q.pop();
+        cout << x << " ";
 
         for (int y = 1; y <= n; y++) {
             if (a[x][y] == 1 && viz[y] == 0) {
                 viz[y] = 1;
-                q[dr++] = y;
+                q.push(y);
             }
         }
     }
@@ -96,14 +100,15 @@ void bfs(int start) {
   {
     title: "Parcurgere in adancime - DFS",
     description: "DFS foloseste recursivitatea si merge cat mai adanc pe fiecare ramura inainte sa revina.",
-    code: `#include <stdio.h>
+    code: `#include <iostream>
+using namespace std;
 
 int a[101][101], viz[101];
 int n;
 
 void dfs(int x) {
     viz[x] = 1;
-    printf("%d ", x);
+    cout << x << " ";
 
     for (int y = 1; y <= n; y++) {
         if (a[x][y] == 1 && viz[y] == 0) {
@@ -518,7 +523,7 @@ export default function App() {
           <a href="#definitii">Definitii</a>
           <a href="#comparatie">Comparatie</a>
           <a href="#matrice">Matrice</a>
-          <a href="#cod-c">Cod C</a>
+          <a href="#cod-cpp">Cod C++</a>
           <a href="#aplicatii">Aplicatii</a>
           <a href="#test">Test</a>
         </nav>
@@ -659,10 +664,10 @@ export default function App() {
           </div>
         </section>
 
-        <section className="content-band code-band" id="cod-c">
+        <section className="content-band code-band" id="cod-cpp">
           <div className="section-heading">
             <p className="eyebrow">Implementare</p>
-            <h2>Exemple de cod in C</h2>
+            <h2>Exemple de cod in C++</h2>
             <p>
               Exemplele folosesc matricea de adiacenta `a`, unde `a[x][y] = 1` inseamna ca exista legatura de la x la y.
             </p>
