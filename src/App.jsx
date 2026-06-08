@@ -69,29 +69,26 @@ const algorithms = [
 const codeExamples = [
   {
     title: "Parcurgere in latime - BFS",
-    description: "BFS foloseste o coada si viziteaza mai intai vecinii apropiati ai varfului de start.",
+    description: "BFS foloseste o coada implementata cu tablou si viziteaza mai intai vecinii apropiati ai varfului de start.",
     code: `#include <iostream>
-#include <queue>
-#include <vector>
 using namespace std;
 
-int a[101][101], viz[101];
+int a[101][101], viz[101], q[101];
 int n;
 
 void bfs(int start) {
-    queue<int> q;
-    q.push(start);
+    int st = 0, dr = 0;
+    q[dr++] = start;
     viz[start] = 1;
 
-    while (!q.empty()) {
-        int x = q.front();
-        q.pop();
+    while (st < dr) {
+        int x = q[st++];
         cout << x << " ";
 
         for (int y = 1; y <= n; y++) {
             if (a[x][y] == 1 && viz[y] == 0) {
                 viz[y] = 1;
-                q.push(y);
+                q[dr++] = y;
             }
         }
     }
@@ -669,7 +666,8 @@ export default function App() {
             <p className="eyebrow">Implementare</p>
             <h2>Exemple de cod in C++</h2>
             <p>
-              Exemplele folosesc matricea de adiacenta `a`, unde `a[x][y] = 1` inseamna ca exista legatura de la x la y.
+              Exemplele folosesc doar tablouri si matricea de adiacenta `a`, unde `a[x][y] = 1` inseamna ca exista
+              legatura de la x la y.
             </p>
           </div>
           <div className="code-grid">
